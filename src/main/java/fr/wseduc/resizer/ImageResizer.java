@@ -33,8 +33,11 @@ import org.imgscalr.Scalr;
 import org.vertx.java.busmods.BusModBase;
 
 import javax.imageio.*;
+import javax.imageio.spi.ImageWriterSpi;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -511,6 +514,10 @@ public class ImageResizer extends BusModBase implements Handler<Message<JsonObje
 		if (extension == null || extension.isEmpty()) {
 			extension = getFormatByContentType(src.getContentType());
 		}
+		if (extension == null || extension.isEmpty()) {
+			// Le stockage fichier ne conserve ni l'extension ni le type mime : on lit le format dans l'image
+			extension = getFormatBySignature(src);
+		}
 		Iterator<ImageWriter> writers =  ImageIO.getImageWritersByFormatName(extension);
 		if (!writers.hasNext()) {
 			writers = ImageIO.getImageWritersByFormatName("jpg");
@@ -563,7 +570,7 @@ public class ImageResizer extends BusModBase implements Handler<Message<JsonObje
 		}
 		ImageOutputStream ios = ImageIO.createImageOutputStream(out);
 		writer.setOutput(ios);
-		writer.write(null, new IIOImage(resized, null, null), param);
+		writer.write(null, new IIOImage(toEncodableImage(writer, resized), null, null), param);
 		resized.flush();
 		ios.close();
 		ImageFile outImg = new ImageFile(out.toByteArray(), src.getFilename(), src.getContentType());
@@ -601,6 +608,49 @@ public class ImageResizer extends BusModBase implements Handler<Message<JsonObje
 			return contentType.substring(6);
 		}
 		return "";
+	}
+
+	/**
+	 * Détermine le format de l'image d'après sa signature binaire.
+	 * Indispensable quand le stockage ne conserve ni l'extension ni le type mime du fichier :
+	 * sans lui l'écriture retombe sur le writer JPEG, qui refuse les images avec canal alpha.
+	 * @param src image source
+	 * @return le format ImageIO ("png", "jpeg", ...) ou une chaîne vide s'il est indéterminable
+	 */
+	private String getFormatBySignature(ImageFile src) {
+		try (ImageInputStream iis = ImageIO.createImageInputStream(src.getInputStream())) {
+			if (iis != null) {
+				Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+				if (readers.hasNext()) {
+					return readers.next().getFormatName().toLowerCase();
+				}
+			}
+		} catch (IOException e) {
+			logger.error("Error reading image format.", e);
+		}
+		return "";
+	}
+
+	/**
+	 * Aplatit l'image sur un fond blanc quand le writer retenu ne sait pas encoder sa transparence
+	 * (les writers JPEG et BMP échouent avec une IIOException "Bogus input colorspace" sur une image ARGB).
+	 * @param writer writer retenu pour l'écriture
+	 * @param image image à écrire
+	 * @return l'image telle quelle si le writer l'accepte, sinon sa version aplatie sans canal alpha
+	 */
+	private BufferedImage toEncodableImage(ImageWriter writer, BufferedImage image) {
+		final ImageWriterSpi spi = writer.getOriginatingProvider();
+		if (spi == null || spi.canEncodeImage(image)) {
+			return image;
+		}
+		final BufferedImage flattened = new BufferedImage(
+				image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+		final Graphics2D g = flattened.createGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, flattened.getWidth(), flattened.getHeight());
+		g.drawImage(image, 0, 0, null);
+		g.dispose();
+		return flattened;
 	}
 
 
