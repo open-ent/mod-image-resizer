@@ -13,7 +13,8 @@
     <artifactId>mod-image-resizer</artifactId>
     <version>3.2.3-patched</version>
     <properties>
-        <entcore.version>6.14.9</entcore.version>
+        <entcore.version>6.16.14-patched</entcore.version>
+        <entCoreLibsVersion>6.16.7-patched</entCoreLibsVersion>
         <jacksonDatabindVersion>2.15.2</jacksonDatabindVersion>
         <mongoDbVersion>4.8.1</mongoDbVersion>
         <imgscalrVersion>4.2</imgscalrVersion>
@@ -34,6 +35,11 @@
             <name>ODE Repository</name>
             <url>https://maven.opendigitaleducation.com/nexus/content/groups/public</url>
         </repository>
+      <repository>
+        <id>pt-releases</id>
+        <name>rct-nexus maven-releases (entcore-libs patchées)</name>
+        <url>https://rct-nexus.tech.fr/repository/maven-releases/</url>
+      </repository>
     </repositories>
 
     <dependencies>
@@ -46,7 +52,7 @@
         <dependency>
             <groupId>org.entcore</groupId>
             <artifactId>common</artifactId>
-            <version>${entcore.version}</version>
+            <version>${entCoreLibsVersion}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
