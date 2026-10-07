@@ -11,7 +11,7 @@
 
     <groupId>fr.wseduc</groupId>
     <artifactId>mod-image-resizer</artifactId>
-    <version>3.2.3-patched</version>
+    <version>3.3.1-patched</version>
     <properties>
         <entcore.version>6.16.14-patched</entcore.version>
         <entCoreLibsVersion>6.16.8-patched</entCoreLibsVersion>
