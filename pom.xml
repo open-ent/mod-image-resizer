@@ -4,16 +4,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.edifice</groupId>
+        <groupId>fr.openent</groupId>
         <artifactId>app-parent</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.0</version>
     </parent>
 
     <groupId>fr.wseduc</groupId>
     <artifactId>mod-image-resizer</artifactId>
-    <version>3.3.1</version>
+    <version>3.2.3-patched</version>
     <properties>
-        <entCoreLibsVersion>6.16.1</entCoreLibsVersion>
+        <entcore.version>6.16.14-patched</entcore.version>
+        <entCoreLibsVersion>6.16.8-patched</entCoreLibsVersion>
         <jacksonDatabindVersion>2.15.2</jacksonDatabindVersion>
         <mongoDbVersion>4.8.1</mongoDbVersion>
         <imgscalrVersion>4.2</imgscalrVersion>
@@ -34,6 +35,11 @@
             <name>ODE Repository</name>
             <url>https://maven.opendigitaleducation.com/nexus/content/groups/public</url>
         </repository>
+      <repository>
+        <id>pt-releases</id>
+        <name>rct-nexus maven-releases (entcore-libs patchées)</name>
+        <url>https://rct-nexus.tech.fr/repository/maven-releases/</url>
+      </repository>
     </repositories>
 
     <dependencies>
@@ -54,6 +60,12 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jacksonDatabindVersion}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-mongo-client</artifactId>
+            <version>${vertxVersion}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
