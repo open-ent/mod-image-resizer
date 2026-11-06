@@ -154,11 +154,40 @@ public class ImageResizer extends BusModBase implements Handler<Message<JsonObje
 					return;
 				}
 				try {
-					BufferedImage srcImg = ImageIO.read(src.getInputStream());
-					persistImage(src, srcImg, srcImg, fDest, quality.floatValue(), m);
+					// Lu une fois : le flux d'origine ne se relit pas, et l'image sert deux fois.
+					final ImageFile image = new ImageFile(src.getData(), src.getFilename(), src.getContentType());
+					if (DrawioPng.carriesDiagram(image.getData())) {
+						keepAsIs(image, fDest, m);
+						return;
+					}
+					BufferedImage srcImg = ImageIO.read(image.getInputStream());
+					persistImage(image, srcImg, srcImg, fDest, quality.floatValue(), m);
 				} catch (IOException e) {
 					logger.error("Error processing image.", e);
 					sendError(m, "Error processing image.", e);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Open ENT : un schéma draw.io n'est pas compressé — le réencodage perdrait le schéma source
+	 * qu'il contient (cf. {@link DrawioPng}). Il est recopié tel quel, s'il faut le recopier.
+	 */
+	private void keepAsIs(final ImageFile image, FileAccess fDest, final Message<JsonObject> m) {
+		final String dest = m.body().getString("dest");
+		final int size = image.getData().length;
+		if (dest.equals(m.body().getString("src"))) {
+			sendOK(m, new JsonObject().put("output", dest).put("size", size));
+			return;
+		}
+		fDest.write(dest, image, new Handler<String>() {
+			@Override
+			public void handle(String result) {
+				if (result != null && !result.trim().isEmpty()) {
+					sendOK(m, new JsonObject().put("output", result).put("size", size));
+				} else {
+					sendError(m, "Error writing file.");
 				}
 			}
 		});
