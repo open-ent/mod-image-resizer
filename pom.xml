@@ -19,7 +19,7 @@
         <mongoDbVersion>4.8.1</mongoDbVersion>
         <imgscalrVersion>4.2</imgscalrVersion>
         <swiftClientVersion>1.0.0</swiftClientVersion>
-        <metadataExtractorVersion>2.19.0</metadataExtractorVersion>
+        <metadataExtractorVersion>2.22.0</metadataExtractorVersion>
         <junitVersion>4.13.2</junitVersion>
     </properties>
 
